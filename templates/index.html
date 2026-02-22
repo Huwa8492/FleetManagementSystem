@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset=""UTF-8">
+    <title>Fleet Management</title>
+</head>
+<body>
+    <h1>Fleet Management System</h1>
+    <h2>Registered Vehicles</h2>
+    <ul>
+        {% for vehicle in vehicles %}
+            <li>
+                <strong>{{ vehicle['LicensePlate'] }}</strong>
+                - Mileage: {{ vehicle['Mileage']}} km
+                - Status: {{ vehicle['Status']}}
+                </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
