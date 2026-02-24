@@ -1,5 +1,5 @@
 -- Deletes the tables if they already exists
-DROP TABLE IF EXISTS MaINTEGERenance;
+DROP TABLE IF EXISTS Maintenance;
 DROP TABLE IF EXISTS Trips;
 DROP TABLE IF EXISTS Vehicles;
 DROP TABLE IF EXISTS Drivers;
@@ -17,8 +17,8 @@ CREATE TABLE Vehicles (
     Status VARCHAR(50) DEFAULT 'Active'
 );
 
-CREATE TABLE MaINTEGERenance (
-    MaINTEGERenanceID INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE Maintenance (
+    MaintenanceID INTEGER PRIMARY KEY AUTOINCREMENT,
     VehicleID INTEGER NOT NULL,
     Date DATE NOT NULL,
     Cost REAL,
@@ -36,3 +36,16 @@ CREATE TABLE Trips (
     FOREIGN KEY (VehicleID) REFERENCES Vehicles(VehicleID),
     FOREIGN KEY (DriverID) REFERENCES Drivers(DriverID)
 );
+
+CREATE TRIGGER Check_Maintenance_Trigger
+AFTER INSERT ON Trips
+BEGIN
+    UPDATE Vehicles
+    SET
+    Mileage = Mileage + NEW.Distance,
+    Status = CASE
+                WHEN (Mileage + NEW.Distance) >= 10000 THEN 'Maintenance Required'
+                ELSE Status
+            END
+    WHERE VehicleID = NEW.VehicleID;
+END;
