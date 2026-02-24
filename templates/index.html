@@ -16,5 +16,47 @@
                 </li>
         {% endfor %}
     </ul>
+
+    <hr>
+
+    <h2>Register a new trip (Test trigger)</h2>
+    <form action="/add_trip" method = "POST">
+        <p>
+            <label>Choose vehicle:</label><br>
+            <select name="vehicle_id" required>
+                <option value="">-- Choose a vehicle --</option>
+                {% for vehicle in vehicles %}
+                    <option value="{{ vehicle['VehicleID'] }}">{{ vehicle['LicensePlate']}} (Current: {{ vehicle['Mileage'] }} km)</option>
+                    {% endfor %}
+            </select>
+        </p>
+
+        <p>
+            <label>Choose driver:</label><br>
+            <select name="driver_id" required>
+                <option value="">-- Choose a driver --</option>
+                {% for driver in drivers %}
+                    <option value="{{ driver['DriverID'] }}">{{ driver['Name']}} </option>
+                    {% endfor %}
+            </select>
+        </p>
+
+        <p>
+            <label>Date: </label><br>
+            <input type="date" name="date" required>
+        </p>
+
+        <p>
+            <label>Distance (km): </label><br>
+            <input type="number" name="distance" placeholder="Ex 7000" required>
+        </p>
+
+        <p>
+            <label>Cost (kr): </label><br>
+            <input type="number" name="cost" placeholder="Ex 1500" required>
+        </p>
+
+        <button type="submit" style="padding: 10px 20px; font-size: 16px;">Save Trip</button>
+    </form>
 </body>
 </html>
