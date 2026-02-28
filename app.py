@@ -29,10 +29,29 @@ def add_trip():
 
     conn=get_db_connection()
 
-    conn.execute('INSERT INTO Trips (VehicleID, DriverID, Date, Distance, Cost) VALUES (?, ?, ?, ?, ?)', (vehicle_id, driver_id, date, distance, cost))
+    try: #Check if a driver is free or booked
+        existing_trip=conn.execute('SELECT * FROM Trips WHERE DriverID = ? AND Date = ?', (driver_id, date)).fetchone()
 
-    conn.commit()
-    conn.close()
+        if existing_trip:
+            conn.rollback()
+            conn.close()
+            return f"""
+            <div style='font-family: Arial; text-align: center; margin-top:50px;'><h1 style='color:red;'>Booking cancelled!</h1>
+            <h3>The chosen driver is already booked the date {date}</h3>
+            <a href='/' style='font-size:20px; text-decoration: none; background: #eee; padding: 10px; border-radius:5px;>Please go back and choose another date/driver</a>
+            </div>
+            '"""
+        #If driver is free, add the trip
+        conn.execute('INSERT INTO Trips (VehicleID, DriverID, Date, Distance, Cost) VALUES (?, ?, ?, ?, ?)', (vehicle_id, driver_id, date, distance, cost))
+
+        conn.commit()
+
+    except sqlite3.Error as e:
+        conn.rollback()
+        return f"A database error occurred: {e}"
+        
+    finally:  
+        conn.close()
 
     return redirect(url_for('index'))
 
