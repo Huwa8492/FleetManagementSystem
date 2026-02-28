@@ -17,9 +17,9 @@ cur.execute("INSERT INTO Drivers (Name, LicenseType) VALUES (?, ?)", ('Jacob Kar
 cur.execute("INSERT INTO Drivers (Name, LicenseType) VALUES (?, ?)", ('Erik Svensson', 'CE'))
 cur.execute("INSERT INTO Drivers (Name, LicenseType) VALUES (?, ?)", ('Axel Lindgren', 'C'))
 
-cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('QWE-123', 15000, 'Active'))
+cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('QWE-123', 1000, 'Active'))
 cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('RTY-456', 4400, 'Active'))
-cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('UIO-789', 125000, 'Maintenance'))
+cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('UIO-789', 12000, 'Maintenance'))
 cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('AMH-285', 700, 'Active'))
 cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('LMO-916', 35000, 'Active'))
 

@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key='secret_key_for_flash'
 
 #Connect to the database
 def get_db_connection():
@@ -35,16 +36,13 @@ def add_trip():
         if existing_trip:
             conn.rollback()
             conn.close()
-            return f"""
-            <div style='font-family: Arial; text-align: center; margin-top:50px;'><h1 style='color:red;'>Booking cancelled!</h1>
-            <h3>The chosen driver is already booked the date {date}</h3>
-            <a href='/' style='font-size:20px; text-decoration: none; background: #eee; padding: 10px; border-radius:5px;>Please go back and choose another date/driver</a>
-            </div>
-            '"""
+            flash(f"Booking canceled! Driver is already booked the date: {date}.", "error")
+            return redirect(url_for('index'))
         #If driver is free, add the trip
         conn.execute('INSERT INTO Trips (VehicleID, DriverID, Date, Distance, Cost) VALUES (?, ?, ?, ?, ?)', (vehicle_id, driver_id, date, distance, cost))
 
         conn.commit()
+        flash("Trip booked successfully!", "succes")
 
     except sqlite3.Error as e:
         conn.rollback()
