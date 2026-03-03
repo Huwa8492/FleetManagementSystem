@@ -44,7 +44,7 @@
             <select name="vehicle_id" required>
                 <option value="">-- Choose a vehicle --</option>
                 {% for vehicle in vehicles %}
-                    <option value="{{ vehicle['VehicleID'] }}">{{ vehicle['LicensePlate']}} (Current: {{ vehicle['Mileage'] }} km)</option>
+                    <option value="{{ vehicle['VehicleID'] }}">{{ vehicle['LicensePlate']}} (Current: {{ vehicle['Mileage'] }} km) (Status: {{ vehicle['Status']}})</option>
                     {% endfor %}
             </select>
         </p>
@@ -66,15 +66,42 @@
 
         <p>
             <label>Distance (km): </label><br>
-            <input type="number" name="distance" placeholder="Ex 7000" required>
+            <input type="number" name="distance" placeholder="Ex 7000" min ="0" required>
         </p>
 
         <p>
             <label>Cost (kr): </label><br>
-            <input type="number" name="cost" placeholder="Ex 1500" required>
+            <input type="number" name="cost" placeholder="Ex 1500" min="0" required>
         </p>
 
         <button type="submit" style="padding: 10px 20px; font-size: 16px;">Save Trip</button>
+    </form>
+
+    <hr>
+    <h2>Perform Maintenance</h2>
+    <form action="/add_maintenance" method="POST">
+        <p>
+            <label>Choose vehicle:</label>
+            <select name="vehicle_id" required>
+                <option value="">-- Choose a vehicle --</option>
+                {% for vehicle in vehicles %}
+                    <option value="{{ vehicle['VehicleID']}}">{{ vehicle['LicensePlate']}} (Status: {{ vehicle['Status']}})</option>
+                    {% endfor %}
+            </select>
+        </p>
+        <p>
+            <label>Date: </label><br>
+            <input type="date" name="date" required>
+        </p>
+        <p>
+            <label>Cost (kr): </label><br>
+            <input type="number" name ="cost" placeholder="Ex 5000" min="0" required>
+        </p>
+        <p>
+            <label>Description: </label><br>
+            <input type="text" name="description" placeholder="Ex. Oil change and new brakes" required>
+        </p>
+        <button type="submit" style="padding: 10px 20px; font-size: 16px; background-color: #d4edda;">Save Maintenance</button>
     </form>
 </body>
 </html>

@@ -42,10 +42,10 @@ AFTER INSERT ON Trips
 BEGIN
     UPDATE Vehicles
     SET
-    Mileage = Mileage + NEW.Distance,
-    Status = CASE
-                WHEN (Mileage + NEW.Distance) >= 10000 THEN 'Maintenance Required'
+        Status = CASE
+                WHEN (Mileage + NEW.Distance)/10000 > Mileage/10000 THEN 'Maintenance Required'
                 ELSE Status
-            END
+            END,
+        Mileage = Mileage + NEW.Distance
     WHERE VehicleID = NEW.VehicleID;
 END;
