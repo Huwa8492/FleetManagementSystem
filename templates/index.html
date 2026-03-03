@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Fleet Management</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}"
 </head>
 <body>
     <h1>Fleet Management System</h1>
@@ -10,9 +11,12 @@
     <ul>
         {% for vehicle in vehicles %}
             <li>
-                <strong>{{ vehicle['LicensePlate'] }}</strong>
-                - Mileage: {{ vehicle['Mileage']}} km
-                - Status: {{ vehicle['Status']}}
+                <span><strong>{{ vehicle['LicensePlate'] }}</strong>&nbsp;|&nbsp;Mileage: {{ vehicle['Mileage']}} km</span>
+                {% if vehicle['Status'] == 'Maintenance Required' %}
+                    <span class="status-warning">{{ vehicle['Status']}}</span>
+                {% else %}
+                    <span class="status-active">{{ vehicle['Status']}}</span>
+                {% endif %}
                 </li>
         {% endfor %}
     </ul>
@@ -37,7 +41,7 @@
         {% endif %}
     {% endwith %}
 
-    <h2>Register a new trip (Test trigger)</h2>
+    <h2>Register a new trip</h2>
     <form action="/add_trip" method = "POST">
         <p>
             <label>Choose vehicle:</label><br>
