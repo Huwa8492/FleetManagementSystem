@@ -97,6 +97,13 @@ def add_maintenance():
     conn=get_db_connection()
 
     try:
+        maintenance_date=datetime.strptime(date, '%Y-%m-%d').date()
+        today=datetime.today().date()
+        if maintenance_date < today:
+            conn.close()
+            flash("Maintenance canceled! You cannot book maintenance in the past.", "error")
+            return redirect(url_for('index'))
+        
         existing_trip=conn.execute('SELECT * FROM Trips WHERE VehicleID =? AND Date = ?', (vehicle_id, date)).fetchone()
 
         if existing_trip:
