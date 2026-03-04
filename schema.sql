@@ -49,3 +49,12 @@ BEGIN
         Mileage = Mileage + NEW.Distance
     WHERE VehicleID = NEW.VehicleID;
 END;
+
+CREATE TRIGGER Prevent_Active_Vehicle_Deletion
+BEFORE DELETE ON Vehicles
+BEGIN 
+    SELECT CASE
+        WHEN OLD.Status = 'Active' THEN
+            RAISE(ABORT, 'Cannot delete a vehicle that is currently active.')
+    END;
+END;

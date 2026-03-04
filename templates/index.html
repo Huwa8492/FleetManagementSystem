@@ -3,25 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Fleet Management</title>
-    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}"
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
 </head>
 <body>
     <h1>Fleet Management System</h1>
-    <h2>Registered Vehicles</h2>
-    <ul>
-        {% for vehicle in vehicles %}
-            <li>
-                <span><strong>{{ vehicle['LicensePlate'] }}</strong>&nbsp;|&nbsp;Mileage: {{ vehicle['Mileage']}} km</span>
-                {% if vehicle['Status'] == 'Maintenance Required' %}
-                    <span class="status-warning">{{ vehicle['Status']}}</span>
-                {% else %}
-                    <span class="status-active">{{ vehicle['Status']}}</span>
-                {% endif %}
-                </li>
-        {% endfor %}
-    </ul>
 
-    <hr>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -40,6 +26,66 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
+
+    <h2>Vehicle Dashboard</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>License Plate</th>
+                <th>Status</th>
+                <th>Current Mileage</th>
+                <th>Total Trips</th>
+                <th>Driven During Trips</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in vehicle_stats %}
+            <tr>
+                <td><strong>{{ stat['LicensePlate']}}</strong></td>
+                <td>
+                    {% if stat['Status'] == 'Maintenance Required' %}
+                        <span class="status-warning">{{stat['Status']}}</span>
+                    {% else %}
+                        <span class="status-active">{{stat['Status']}}</span>
+                    {%endif%}
+                </td>
+
+
+                <td>{{ stat['Mileage']}}</td>
+                <td>{{ stat['TotalTrips']}}</td>
+                <td>{{ stat['TotalDistance'] or 0}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Trip History</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Vehicle</th>
+                <th>Driver</th>
+                <th>Distance (km)</th>
+                <th>Cost (kr)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trip in trips_history %}
+            <tr>
+                <td>{{ trip['Date'] }}</td>
+                <td>{{ trip['LicensePlate'] }}</td>
+                <td>{{ trip['Name'] }}</td>
+                <td>{{ trip['Distance'] }}</td>
+                <td>{{ trip['Cost'] }}</td>
+            </tr>
+            {%else%}
+            <tr>
+                <td colspan="5" style="text-align: center; color: #7f8c8d;">No trips recorded yet</td>
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
 
     <h2>Register a new trip</h2>
     <form action="/add_trip" method = "POST">

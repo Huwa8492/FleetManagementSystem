@@ -17,9 +17,20 @@ def index():
 
     vehicles=conn.execute('SELECT * FROM Vehicles').fetchall()
     drivers= conn.execute('SELECT * FROM Drivers').fetchall()
+
+    #Multirelation JOIN
+    trips_history = conn.execute('''
+    SELECT Trips.Date, Vehicles.LicensePlate, Drivers.Name, Trips.Distance, Trips.Cost FROM Trips
+    JOIN Vehicles ON Trips.VehicleID = Vehicles.VehicleID
+    JOIN Drivers ON Trips.DriverID = Drivers.DriverID
+    ORDER BY Trips.Date DESC''').fetchall()
+
+    #Aggregation and grouping
+    vehicle_stats=conn.execute('''SELECT Vehicles.LicensePlate, Vehicles.Status, Vehicles.Mileage, COUNT(Trips.TripID) as TotalTrips, SUM(Trips.Distance) as  TotalDistance FROM Vehicles LEFT JOIN Trips ON Vehicles.VehicleID = Trips.VehicleID GROUP BY Vehicles.VehicleID''').fetchall()
+
     conn.close()
 
-    return render_template('index.html',vehicles=vehicles, drivers=drivers)
+    return render_template('index.html',vehicles=vehicles, drivers=drivers, trips_history=trips_history, vehicle_stats=vehicle_stats)
 
 @app.route('/add_trip', methods=['POST'])
 def add_trip():
