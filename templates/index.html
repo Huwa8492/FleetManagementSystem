@@ -6,152 +6,210 @@
     <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
 </head>
 <body>
-    <h1>Fleet Management System</h1>
+    <div class="layout-wrapper">
+        
+        <aside class="sidebar">
+            <div class="sidebar-image-container">
+                <img src="{{url_for('static', filename='luxury_car.jpg')}}" alt="Luxury Fleet" class="sidebar-image">
+            </div>
+            <div class="sidebar-brand">F.M.S</div>
+            <div class="sidebar-item">
+                <div class="sidebar-label">Status</div>
+                <div class="sidebar-value"><span class="status-dot"></span>Online</div>
+            </div>
+            <div class="sidebar-item">
+                <div class="sidebar-label">Security</div>
+                <div class="sidebar-value">Encrypted</div>
+            </div>
+        </aside>
 
+        <div class="container">
+            <h1>Fleet Management System</h1>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                {% if category == 'error' %}
-
-                <div style ="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-                <strong> {{ message}}</strong>
-                </div>
-                {% else%}
-                <div style=" background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-                <strong>{{ message }}</strong>
-                </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                        <div style ="background-color: rgba(201, 92, 92, 0.2); color: #c95c5c; border: 1px solid #c95c5c; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                        <strong> {{ message}}</strong>
+                        </div>
+                        {% else%}
+                        <div style=" background-color: rgba(114, 160, 116, 0.2); color: #72a074; border: 1px solid #72a074; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                        <strong>{{ message }}</strong>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
                 {% endif %}
-                
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+            {% endwith %}
 
-    <h2>Vehicle Dashboard</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>License Plate</th>
-                <th>Status</th>
-                <th>Current Mileage</th>
-                <th>Total Trips</th>
-                <th>Driven During Trips</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for stat in vehicle_stats %}
-            <tr>
-                <td><strong>{{ stat['LicensePlate']}}</strong></td>
-                <td>
-                    {% if stat['Status'] == 'Maintenance Required' %}
-                        <span class="status-warning">{{stat['Status']}}</span>
-                    {% else %}
-                        <span class="status-active">{{stat['Status']}}</span>
-                    {%endif%}
-                </td>
-
-
-                <td>{{ stat['Mileage']}}</td>
-                <td>{{ stat['TotalTrips']}}</td>
-                <td>{{ stat['TotalDistance'] or 0}}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <h2>Trip History</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Vehicle</th>
-                <th>Driver</th>
-                <th>Distance (km)</th>
-                <th>Cost (kr)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for trip in trips_history %}
-            <tr>
-                <td>{{ trip['Date'] }}</td>
-                <td>{{ trip['LicensePlate'] }}</td>
-                <td>{{ trip['Name'] }}</td>
-                <td>{{ trip['Distance'] }}</td>
-                <td>{{ trip['Cost'] }}</td>
-            </tr>
-            {%else%}
-            <tr>
-                <td colspan="5" style="text-align: center; color: #7f8c8d;">No trips recorded yet</td>
-            </tr>
-            {%endfor%}
-        </tbody>
-    </table>
-
-    <h2>Register a new trip</h2>
-    <form action="/add_trip" method = "POST">
-        <p>
-            <label>Choose vehicle:</label><br>
-            <select name="vehicle_id" required>
-                <option value="">-- Choose a vehicle --</option>
-                {% for vehicle in vehicles %}
-                    <option value="{{ vehicle['VehicleID'] }}">{{ vehicle['LicensePlate']}} (Current: {{ vehicle['Mileage'] }} km) (Status: {{ vehicle['Status']}})</option>
+            <h2>Vehicle Dashboard</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>License Plate</th>
+                        <th>Status</th>
+                        <th>Current Mileage</th>
+                        <th>Total Trips</th>
+                        <th>Driven During Trips</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in vehicle_stats %}
+                    <tr>
+                        <td><strong>{{ stat['LicensePlate']}}</strong></td>
+                        <td>
+                            {% if stat['Status'] == 'Maintenance Required' %}
+                                <span class="status-warning">{{stat['Status']}}</span>
+                            {% else %}
+                                <span class="status-active">{{stat['Status']}}</span>
+                            {%endif%}
+                        </td>
+                        <td>{{ stat['Mileage']}}</td>
+                        <td>{{ stat['TotalTrips']}}</td>
+                        <td>{{ stat['TotalDistance'] or 0}}</td>
+                    </tr>
                     {% endfor %}
-            </select>
-        </p>
+                </tbody>
+            </table>
 
-        <p>
-            <label>Choose driver:</label><br>
-            <select name="driver_id" required>
-                <option value="">-- Choose a driver --</option>
-                {% for driver in drivers %}
-                    <option value="{{ driver['DriverID'] }}">{{ driver['Name']}} </option>
-                    {% endfor %}
-            </select>
-        </p>
+            <h2>Trip History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Vehicle</th>
+                        <th>Driver</th>
+                        <th>Distance (km)</th>
+                        <th>Cost (kr)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trip in trips_history %}
+                    <tr>
+                        <td>{{ trip['Date'] }}</td>
+                        <td>{{ trip['LicensePlate'] }}</td>
+                        <td>{{ trip['Name'] }}</td>
+                        <td>{{ trip['Distance'] }}</td>
+                        <td>{{ trip['Cost'] }}</td>
+                    </tr>
+                    {%else%}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #7f8c8d;">No trips recorded yet</td>
+                    </tr>
+                    {%endfor%}
+                </tbody>
+            </table>
 
-        <p>
-            <label>Date: </label><br>
-            <input type="date" name="date" required>
-        </p>
+            <h2>Maintenance History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Vehicle</th>
+                        <th>Cost (kr)</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for maint in maintenance_history %}
+                    <tr>
+                        <td>{{ maint['Date']}}</td>
+                        <td>{{ maint['LicensePlate']}}</td>
+                        <td>{{ maint['Cost']}}</td>
+                        <td>{{ maint['Description']}}</td>
+                    </tr>
+                    {%else%}
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #8c7a6b; font-style: italic;">No maintenance recorded</td>
+                    </tr>
+                    {%endfor%}
+                </tbody>
+            </table>
 
-        <p>
-            <label>Distance (km): </label><br>
-            <input type="number" name="distance" placeholder="Ex 7000" min ="0" required>
-        </p>
+            <h2>Register a new trip</h2>
+            <form action="/add_trip" method="POST">
+                <p>
+                    <label>Choose vehicle:</label><br>
+                    <select name="vehicle_id" required>
+                        <option value="">-- Choose a vehicle --</option>
+                        {% for vehicle in vehicles %}
+                            <option value="{{ vehicle['VehicleID'] }}">{{ vehicle['LicensePlate']}} (Current: {{ vehicle['Mileage'] }} km) (Status: {{ vehicle['Status']}})</option>
+                        {% endfor %}
+                    </select>
+                </p>
 
-        <p>
-            <label>Cost (kr): </label><br>
-            <input type="number" name="cost" placeholder="Ex 1500" min="0" required>
-        </p>
+                <p>
+                    <label>Choose driver:</label><br>
+                    <select name="driver_id" required>
+                        <option value="">-- Choose a driver --</option>
+                        {% for driver in drivers %}
+                            <option value="{{ driver['DriverID'] }}">{{ driver['Name']}} </option>
+                        {% endfor %}
+                    </select>
+                </p>
 
-        <button type="submit" style="padding: 10px 20px; font-size: 16px;">Save Trip</button>
-    </form>
+                <p>
+                    <label>Date: </label><br>
+                    <input type="date" name="date" required>
+                </p>
 
-    <hr>
-    <h2>Perform Maintenance</h2>
-    <form action="/add_maintenance" method="POST">
-        <p>
-            <label>Choose vehicle:</label>
-            <select name="vehicle_id" required>
-                <option value="">-- Choose a vehicle --</option>
-                {% for vehicle in vehicles %}
-                    <option value="{{ vehicle['VehicleID']}}">{{ vehicle['LicensePlate']}} (Status: {{ vehicle['Status']}})</option>
-                    {% endfor %}
-            </select>
-        </p>
-        <p>
-            <label>Date: </label><br>
-            <input type="date" name="date" required>
-        </p>
-        <p>
-            <label>Cost (kr): </label><br>
-            <input type="number" name ="cost" placeholder="Ex 5000" min="0" required>
-        </p>
-        <p>
-            <label>Description: </label><br>
-            <input type="text" name="description" placeholder="Ex. Oil change and new brakes" required>
-        </p>
-        <button type="submit" class="btn-maintenance">Save Maintenance</button>
-    </form>
+                <p>
+                    <label>Distance (km): </label><br>
+                    <input type="number" name="distance" placeholder="Ex 7000" min="0" required>
+                </p>
+
+                <p>
+                    <label>Cost (kr): </label><br>
+                    <input type="number" name="cost" placeholder="Ex 1500" min="0" required>
+                </p>
+
+                <button type="submit" style="padding: 10px 20px; font-size: 16px;">Save Trip</button>
+            </form>
+
+            <hr>
+            <h2>Perform Maintenance</h2>
+            <form action="/add_maintenance" method="POST">
+                <p>
+                    <label>Choose vehicle:</label>
+                    <select name="vehicle_id" required>
+                        <option value="">-- Choose a vehicle --</option>
+                        {% for vehicle in vehicles %}
+                            <option value="{{ vehicle['VehicleID']}}">{{ vehicle['LicensePlate']}} (Status: {{ vehicle['Status']}})</option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p>
+                    <label>Date: </label><br>
+                    <input type="date" name="date" required>
+                </p>
+                <p>
+                    <label>Cost (kr): </label><br>
+                    <input type="number" name="cost" placeholder="Ex 5000" min="0" required>
+                </p>
+                <p>
+                    <label>Description: </label><br>
+                    <input type="text" name="description" placeholder="Ex. Oil change and new brakes" required>
+                </p>
+                <button type="submit" class="btn-maintenance">Save Maintenance</button>
+            </form>
+
+        </div>
+
+        <aside class="sidebar">
+            <div class="sidebar-image-container">
+                <img src="{{ url_for('static', filename='luxury_car2.jpg') }}" alt="Executive Detail" class="sidebar-image">
+            </div>
+            <div class="sidebar-brand" style="color: #c99c55; font-size: 1.2em; padding-top: 15px;">USER INFO</div>
+            <div class="sidebar-item">
+                <div class="sidebar-label">Logged In</div>
+                <div class="sidebar-value">Admin</div>
+            </div>
+            <div class="sidebar-item">
+                <div class="sidebar-label">Access Level</div>
+                <div class="sidebar-value">Full</div>
+            </div>
+        </aside>
+
+    </div>
 </body>
 </html>

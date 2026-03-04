@@ -28,9 +28,13 @@ def index():
     #Aggregation and grouping
     vehicle_stats=conn.execute('''SELECT Vehicles.LicensePlate, Vehicles.Status, Vehicles.Mileage, COUNT(Trips.TripID) as TotalTrips, SUM(Trips.Distance) as  TotalDistance FROM Vehicles LEFT JOIN Trips ON Vehicles.VehicleID = Trips.VehicleID GROUP BY Vehicles.VehicleID''').fetchall()
 
+    maintenance_history= conn.execute('''SELECT Maintenance.Date, Vehicles.LicensePlate, Maintenance.Cost, Maintenance.Description FROM Maintenance
+    JOIN Vehicles ON Maintenance.VehicleID = Vehicles.VehicleID ORDER BY Maintenance.Date DESC''').fetchall()
+    
+
     conn.close()
 
-    return render_template('index.html',vehicles=vehicles, drivers=drivers, trips_history=trips_history, vehicle_stats=vehicle_stats)
+    return render_template('index.html',vehicles=vehicles, drivers=drivers, trips_history=trips_history, vehicle_stats=vehicle_stats, maintenance_history=maintenance_history)
 
 @app.route('/add_trip', methods=['POST'])
 def add_trip():
