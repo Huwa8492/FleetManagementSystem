@@ -9,7 +9,17 @@ app.secret_key='secret_key_for_flash'
 def get_db_connection():
     conn = sqlite3.connect('fleet.db')
     conn.row_factory = sqlite3.Row
+
+    conn.create_function("CALCULATE_TAX", 1, calculate_tax)
+    
     return conn
+
+def calculate_tax(cost):
+    if cost is None:
+        return 0
+    return round(float(cost) *0.25, 2)
+
+
 
 @app.route('/')
 def index():
@@ -20,7 +30,8 @@ def index():
 
     #Multirelation JOIN
     trips_history = conn.execute('''
-    SELECT Trips.Date, Vehicles.LicensePlate, Drivers.Name, Trips.Distance, Trips.Cost FROM Trips
+    SELECT Trips.Date, Vehicles.LicensePlate, Drivers.Name, Trips.Distance, Trips.Cost, CALCULATE_TAX(Trips.Cost) as Tax 
+    FROM Trips
     JOIN Vehicles ON Trips.VehicleID = Vehicles.VehicleID
     JOIN Drivers ON Trips.DriverID = Drivers.DriverID
     ORDER BY Trips.Date DESC''').fetchall()
