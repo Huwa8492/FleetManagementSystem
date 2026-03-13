@@ -1,29 +1,43 @@
-import sqlite3
+import mysql.connector
 
 #Create and connect to the database file
-connection = sqlite3.connect('fleet.db')
+connection = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='GODIS-gris04',
+        database='FleetManagement'
+    )
 
-#Run schema.sql to build tables
-with open('schema.sql') as f:
-    connection.executescript(f.read())
+cursor = connection.cursor()
 
-#Create a cursor to add data
-cur = connection.cursor()
+cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+cursor.execute("TRUNCATE TABLE Trips")
+cursor.execute("TRUNCATE TABLE Maintenance")
+cursor.execute("TRUNCATE TABLE Vehicles")
+cursor.execute("TRUNCATE TABLE Drivers")
+cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
 
-#Add sample data
-cur.execute("INSERT INTO Drivers (Name, LicenseType) VALUES (?, ?)", ('John Johansson', 'B'))
-cur.execute("INSERT INTO Drivers (Name, LicenseType) VALUES (?, ?)", ('Anna Anderson', 'C'))
-cur.execute("INSERT INTO Drivers (Name, LicenseType) VALUES (?, ?)", ('Jacob Karlsson', 'B'))
-cur.execute("INSERT INTO Drivers (Name, LicenseType) VALUES (?, ?)", ('Erik Svensson', 'CE'))
-cur.execute("INSERT INTO Drivers (Name, LicenseType) VALUES (?, ?)", ('Axel Lindgren', 'C'))
+# Add sample data
+drivers_data = [
+    ('John Johansson', 'B'),
+    ('Anna Anderson', 'C'),
+    ('Jacob Karlsson', 'B'),
+    ('Erik Svensson', 'CE'),
+    ('Axel Lindgren', 'C')
+]
+cursor.executemany("INSERT INTO Drivers (Name, LicenseType) VALUES (%s, %s)", drivers_data)
 
-cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('QWE-123', 64000, 'Active'))
-cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('RTY-456', 4400, 'Active'))
-cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('UIO-789', 12000, 'Maintenance Required'))
-cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('AMH-285', 700, 'Active'))
-cur.execute("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (?, ?, ?)", ('LMO-916', 35000, 'Active'))
+vehicles_data = [
+    ('QWE-123', 64000, 'Active'),
+    ('RTY-456', 4400, 'Active'),
+    ('UIO-789', 12000, 'Maintenance Required'),
+    ('AMH-285', 700, 'Active'),
+    ('LMO-916', 35000, 'Active')
+]
+cursor.executemany("INSERT INTO Vehicles (LicensePlate, Mileage, Status) VALUES (%s, %s, %s)", vehicles_data)
 
 connection.commit()
+cursor.close()
 connection.close()
 
-print("Database 'fleet.db' initialized successfully and filled with sample data.")
+print("Database 'FleetManagement' initialized successfully and filled with sample data.")

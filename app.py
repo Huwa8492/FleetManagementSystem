@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-import sqlite3
+import mysql.connector
 from datetime import datetime
 
 app = Flask(__name__)
@@ -7,42 +7,51 @@ app.secret_key='secret_key_for_flash'
 
 #Connect to the database
 def get_db_connection():
-    conn = sqlite3.connect('fleet.db')
-    conn.row_factory = sqlite3.Row
-
-    conn.create_function("CALCULATE_TAX", 1, calculate_tax)
-    
+    conn = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        password='GODIS-gris04',
+        database='FleetManagement'
+    )
     return conn
-
-def calculate_tax(cost):
-    if cost is None:
-        return 0
-    return round(float(cost) *0.25, 2)
-
-
 
 @app.route('/')
 def index():
     conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
 
-    vehicles=conn.execute('SELECT * FROM Vehicles').fetchall()
-    drivers= conn.execute('SELECT * FROM Drivers').fetchall()
+    cursor.execute('SELECT * FROM Vehicles')
+    vehicles=cursor.fetchall()
+    cursor.execute('SELECT * FROM Drivers')
+    drivers=cursor.fetchall()
 
     #Multirelation JOIN
-    trips_history = conn.execute('''
+    cursor.execute('''
     SELECT Trips.Date, Vehicles.LicensePlate, Drivers.Name, Trips.Distance, Trips.Cost, CALCULATE_TAX(Trips.Cost) as Tax 
     FROM Trips
     JOIN Vehicles ON Trips.VehicleID = Vehicles.VehicleID
     JOIN Drivers ON Trips.DriverID = Drivers.DriverID
-    ORDER BY Trips.Date DESC''').fetchall()
+    ORDER BY Trips.Date DESC''')
+    trips_history = cursor.fetchall()
 
     #Aggregation and grouping
-    vehicle_stats=conn.execute('''SELECT Vehicles.LicensePlate, Vehicles.Status, Vehicles.Mileage, COUNT(Trips.TripID) as TotalTrips, SUM(Trips.Distance) as  TotalDistance FROM Vehicles LEFT JOIN Trips ON Vehicles.VehicleID = Trips.VehicleID GROUP BY Vehicles.VehicleID''').fetchall()
+    cursor.execute('''
+    SELECT Vehicles.LicensePlate, Vehicles.Status, Vehicles.Mileage, 
+           COUNT(Trips.TripID) as TotalTrips, 
+           SUM(Trips.Distance) as TotalDistance 
+    FROM Vehicles 
+    LEFT JOIN Trips ON Vehicles.VehicleID = Trips.VehicleID 
+    GROUP BY Vehicles.VehicleID''')
+    vehicle_stats = cursor.fetchall()
 
-    maintenance_history= conn.execute('''SELECT Maintenance.Date, Vehicles.LicensePlate, Maintenance.Cost, Maintenance.Description FROM Maintenance
-    JOIN Vehicles ON Maintenance.VehicleID = Vehicles.VehicleID ORDER BY Maintenance.Date DESC''').fetchall()
+    cursor.execute('''
+    SELECT Maintenance.Date, Vehicles.LicensePlate, Maintenance.Cost, Maintenance.Description 
+    FROM Maintenance
+    JOIN Vehicles ON Maintenance.VehicleID = Vehicles.VehicleID 
+    ORDER BY Maintenance.Date DESC''')
+    maintenance_history = cursor.fetchall()
     
-
+    cursor.close()
     conn.close()
 
     return render_template('index.html',vehicles=vehicles, drivers=drivers, trips_history=trips_history, vehicle_stats=vehicle_stats, maintenance_history=maintenance_history)
@@ -56,59 +65,58 @@ def add_trip():
     cost = request.form['cost']
 
     conn=get_db_connection()
+    cursor=conn.cursor(dictionary=True)
 
     try: 
         #Check that the date is not in the past
         trip_date=datetime.strptime(date, '%Y-%m-%d'). date()
         today = datetime.today().date()
         if trip_date < today:
-            conn.close()
             flash("Booking canceled! You can not book a trip in the past.", "error")
             return redirect(url_for('index'))
 
-        vehicle=conn.execute('SELECT Status FROM Vehicles WHERE VehicleID = ?', (vehicle_id,)).fetchone()
+        cursor.execute('SELECT Status FROM Vehicles WHERE VehicleID = %s', (vehicle_id,))
+        vehicle = cursor.fetchone()
 
         if vehicle and vehicle['Status'] == 'Maintenance Required':
-            conn.rollback()
-            conn.close()
             flash("Booking cancelled! The chosen vehicle needs maintenance, please choose another.", "error")
             return redirect(url_for('index'))
-        #Check if the vehicle is free
-        existing_vehicle_trip = conn.execute('SELECT * FROM Trips WHERE VehicleID =? AND Date =?', (vehicle_id, date)).fetchone()
+            
+        # Check if the vehicle is free
+        cursor.execute('SELECT * FROM Trips WHERE VehicleID = %s AND Date = %s', (vehicle_id, date))
+        existing_vehicle_trip = cursor.fetchone()
 
         if existing_vehicle_trip:
-            conn.rollback()
-            conn.close()
             flash(f"Booking canceled! The vehicle is already booked the date: {date}.", "error")
             return redirect(url_for('index'))
         
-        maintenance_booking = conn.execute('SELECT * FROM Maintenance WHERE VehicleID = ? AND Date = ?', (vehicle_id, date)).fetchone()
+        cursor.execute('SELECT * FROM Maintenance WHERE VehicleID = %s AND Date = %s', (vehicle_id, date))
+        maintenance_booking = cursor.fetchone()
 
         if maintenance_booking:
-            conn.rollback()
-            conn.close()
             flash(f"Booking canceled! The vehicle is in the workshop for maintenance on {date}.", "error")
             return redirect(url_for('index'))
         
-        #Check if a driver is free or booked
-        existing_trip=conn.execute('SELECT * FROM Trips WHERE DriverID = ? AND Date = ?', (driver_id, date)).fetchone()
+        # Check if a driver is free or booked
+        cursor.execute('SELECT * FROM Trips WHERE DriverID = %s AND Date = %s', (driver_id, date))
+        existing_trip = cursor.fetchone()
 
         if existing_trip:
-            conn.rollback()
-            conn.close()
             flash(f"Booking canceled! Driver is already booked the date: {date}.", "error")
             return redirect(url_for('index'))
-        #If driver is free, add the trip
-        conn.execute('INSERT INTO Trips (VehicleID, DriverID, Date, Distance, Cost) VALUES (?, ?, ?, ?, ?)', (vehicle_id, driver_id, date, distance, cost))
+            
+        # If driver is free, add the trip
+        cursor.execute('INSERT INTO Trips (VehicleID, DriverID, Date, Distance, Cost) VALUES (%s, %s, %s, %s, %s)', (vehicle_id, driver_id, date, distance, cost))
 
         conn.commit()
         flash("Trip booked successfully!", "success")
 
-    except sqlite3.Error as e:
+    except mysql.connector.Error as e:
         conn.rollback()
-        return f"A database error occurred: {e}"
+        flash(f"A database error occurred: {e}", "error")
         
     finally:  
+        cursor.close()
         conn.close()
 
     return redirect(url_for('index'))
@@ -121,36 +129,36 @@ def add_maintenance():
     description = request.form['description']
 
     conn=get_db_connection()
+    cursor=conn.cursor()
 
     try:
-        maintenance_date=datetime.strptime(date, '%Y-%m-%d').date()
-        today=datetime.today().date()
+        maintenance_date = datetime.strptime(date, '%Y-%m-%d').date()
+        today = datetime.today().date()
         if maintenance_date < today:
-            conn.close()
             flash("Maintenance canceled! You cannot book maintenance in the past.", "error")
             return redirect(url_for('index'))
         
-        existing_trip=conn.execute('SELECT * FROM Trips WHERE VehicleID =? AND Date = ?', (vehicle_id, date)).fetchone()
+        cursor.execute('SELECT * FROM Trips WHERE VehicleID = %s AND Date = %s', (vehicle_id, date))
+        existing_trip = cursor.fetchone()
 
         if existing_trip:
-            conn.rollback()
-            conn.close()
             flash(f"Maintenance canceled! The vehicle is already booked for a trip on the date: {date}.", "error")
             return redirect(url_for('index'))
 
-        conn.execute('INSERT INTO Maintenance (VehicleID, Date, Cost, Description) VALUES (?, ?, ?, ?)', (vehicle_id, date, cost, description))
-        
-        conn.execute("UPDATE Vehicles SET Status = 'Active' WHERE VehicleID=?", (vehicle_id,))
+        cursor.execute('INSERT INTO Maintenance (VehicleID, Date, Cost, Description) VALUES (%s, %s, %s, %s)', (vehicle_id, date, cost, description))
+        cursor.execute("UPDATE Vehicles SET Status = 'Active' WHERE VehicleID=%s", (vehicle_id,))
 
         conn.commit()
         flash("Maintenance logged successfully! The vehicle is now active and ready to drive", "success")
 
-    except sqlite3.Error as e:
+    except mysql.connector.Error as e:
         conn.rollback()
         flash(f"A database error occurred: {e}", "error")
 
     finally:
+        cursor.close()
         conn.close()
+        
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
